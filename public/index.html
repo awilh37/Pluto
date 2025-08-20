@@ -1,0 +1,41 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pluto</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div id="auth-container">
+        <h2>Create Account</h2>
+        <form id="signup-form">
+            <input type="text" id="signup-name" placeholder="Name" required />
+            <input type="email" id="signup-email" placeholder="Email" required />
+            <input type="password" id="signup-password" placeholder="Password" required />
+            <button type="submit">Sign Up</button>
+        </form>
+
+        <hr>
+
+        <h2>Login</h2>
+        <form id="login-form">
+            <input type="email" id="login-email" placeholder="Email" required />
+            <input type="password" id="login-password" placeholder="Password" required />
+            <button type="submit">Login</button>
+        </form>
+    </div>
+
+    <div id="app-container" class="hidden">
+        <header>
+            <div class="logo">Pluto</div>
+            <div id="user-info"></div>
+            <button id="logout-button">Logout</button>
+        </header>
+        <main id="main-content">
+            <!-- Main content will be dynamically inserted here -->
+        </main>
+    </div>
+    <script type="module" src="script.js"></script>
+</body>
+</html>
