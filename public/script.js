@@ -2,7 +2,7 @@
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAnalytics } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-analytics.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, updateDoc } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -22,6 +22,8 @@ const auth = getAuth(app);
 const db = getFirestore(app);
 
 console.log("Firebase initialized successfully with Auth and Firestore!");
+
+let currentUserData = null; // To hold the current user's data
 
 // --- DOM Elements ---
 const authWrapper = document.getElementById('auth-wrapper');
@@ -43,6 +45,16 @@ const addScheduleButton = document.getElementById('add-schedule-button');
 const landingPage = document.getElementById('landing-page');
 const profilePage = document.getElementById('profile-page');
 const pages = document.querySelectorAll('.page-content');
+
+// Profile Page Elements
+const profileName = document.getElementById('profile-name');
+const profileEmail = document.getElementById('profile-email');
+const profileGrade = document.getElementById('profile-grade');
+const editProfileButton = document.getElementById('edit-profile-button');
+const profileView = document.getElementById('profile-view');
+const profileEdit = document.getElementById('profile-edit');
+const profileEditForm = document.getElementById('profile-edit-form');
+const cancelEditButton = document.getElementById('cancel-edit-button');
 
 // --- Navigation ---
 function showPage(pageId) {
@@ -75,7 +87,72 @@ addScheduleButton.addEventListener('click', (e) => {
     showPage('profile-page');
 });
 
-// --- Sign Up ---
+// --- Profile Page ---
+editProfileButton.addEventListener('click', () => {
+    if (!currentUserData) return;
+
+    // Pre-fill the edit form
+    document.getElementById('profile-grade-edit').value = currentUserData.grade || '';
+    document.getElementById('profile-pic-edit').value = currentUserData.profilePic || '';
+    document.getElementById('schedule-edit').value = currentUserData.schedule ? JSON.stringify(currentUserData.schedule, null, 2) : '';
+
+    profileView.classList.add('hidden');
+    profileEdit.classList.remove('hidden');
+});
+
+cancelEditButton.addEventListener('click', () => {
+    profileEdit.classList.add('hidden');
+    profileView.classList.remove('hidden');
+});
+
+profileEditForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!auth.currentUser) return;
+
+    const scheduleString = document.getElementById('schedule-edit').value;
+    let scheduleData = null;
+    if (scheduleString) {
+        try {
+            scheduleData = JSON.parse(scheduleString);
+        } catch (error) {
+            alert('Invalid JSON in schedule. Please correct it and try again.');
+            return;
+        }
+    }
+
+    const updatedData = {
+        grade: document.getElementById('profile-grade-edit').value,
+        profilePic: document.getElementById('profile-pic-edit').value,
+        schedule: scheduleData,
+    };
+
+    try {
+        const userDocRef = doc(db, 'users', auth.currentUser.uid);
+        await updateDoc(userDocRef, updatedData);
+
+        // Manually update the view and the currentUserData variable
+        currentUserData = { ...currentUserData, ...updatedData };
+        profileGrade.textContent = updatedData.grade || 'Not set';
+        if (updatedData.schedule) {
+            scheduleContainer.classList.remove('hidden');
+            addScheduleContainer.classList.add('hidden');
+            scheduleDisplay.innerHTML = '<pre>' + JSON.stringify(updatedData.schedule, null, 2) + '</pre>';
+        } else {
+            scheduleContainer.classList.add('hidden');
+            addScheduleContainer.classList.remove('hidden');
+        }
+
+        alert('Profile updated successfully!');
+        profileEdit.classList.add('hidden');
+        profileView.classList.remove('hidden');
+
+    } catch (error) {
+        console.error('Error updating profile:', error);
+        alert('Failed to update profile.');
+    }
+});
+
+// --- Auth ---
 signupForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const signupName = document.getElementById('signup-name').value;
@@ -86,7 +163,6 @@ signupForm.addEventListener('submit', async (e) => {
         const userCredential = await createUserWithEmailAndPassword(auth, signupEmail, signupPassword);
         const user = userCredential.user;
 
-        // Add user's name to Firestore
         await setDoc(doc(db, "users", user.uid), {
             name: signupName,
             email: signupEmail,
@@ -100,7 +176,6 @@ signupForm.addEventListener('submit', async (e) => {
     }
 });
 
-// --- Login ---
 loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     const loginEmail = document.getElementById('login-email').value;
@@ -116,7 +191,6 @@ loginForm.addEventListener('submit', async (e) => {
     }
 });
 
-// --- Logout ---
 logoutButton.addEventListener('click', async () => {
     try {
         await signOut(auth);
@@ -127,43 +201,42 @@ logoutButton.addEventListener('click', async () => {
     }
 });
 
-// --- Auth State Change ---
 onAuthStateChanged(auth, async (user) => {
     if (user) {
-        // User is signed in.
         authWrapper.classList.add('hidden');
         appContainer.classList.remove('hidden');
         showPage('landing-page');
 
-        // Fetch user's full data from Firestore
         const userDocRef = doc(db, 'users', user.uid);
         const userDoc = await getDoc(userDocRef);
 
         if (userDoc.exists()) {
-            const userData = userDoc.data();
+            currentUserData = userDoc.data();
+            const userData = currentUserData;
             userInfo.textContent = `Welcome, ${userData.name}`;
 
-            // Check for schedule
             if (userData.schedule) {
                 scheduleContainer.classList.remove('hidden');
                 addScheduleContainer.classList.add('hidden');
-                // Display schedule (simple for now)
                 scheduleDisplay.innerHTML = '<pre>' + JSON.stringify(userData.schedule, null, 2) + '</pre>';
             } else {
                 scheduleContainer.classList.add('hidden');
                 addScheduleContainer.classList.remove('hidden');
             }
+
+            profileName.textContent = userData.name;
+            profileEmail.textContent = userData.email;
+            profileGrade.textContent = userData.grade || 'Not set';
         } else {
-            // This case can happen for a user who was created but Firestore doc creation failed.
             userInfo.textContent = `Welcome, ${user.email}`;
             scheduleContainer.classList.add('hidden');
             addScheduleContainer.classList.remove('hidden');
         }
 
     } else {
-        // User is signed out.
         authWrapper.classList.remove('hidden');
         appContainer.classList.add('hidden');
         userInfo.textContent = '';
+        currentUserData = null;
     }
 });
