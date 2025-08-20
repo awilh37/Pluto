@@ -7,34 +7,73 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    <div id="auth-container">
-        <h2>Create Account</h2>
-        <form id="signup-form">
-            <input type="text" id="signup-name" placeholder="Name" required />
-            <input type="email" id="signup-email" placeholder="Email" required />
-            <input type="password" id="signup-password" placeholder="Password" required />
-            <button type="submit">Sign Up</button>
-        </form>
+    <div id="auth-wrapper">
+        <div id="auth-container">
+            <h2>Create Account</h2>
+            <form id="signup-form">
+                <input type="text" id="signup-name" placeholder="Name" required />
+                <input type="email" id="signup-email" placeholder="Email" required />
+                <input type="password" id="signup-password" placeholder="Password" required />
+                <button type="submit">Sign Up</button>
+            </form>
 
-        <hr>
+            <hr>
 
-        <h2>Login</h2>
-        <form id="login-form">
-            <input type="email" id="login-email" placeholder="Email" required />
-            <input type="password" id="login-password" placeholder="Password" required />
-            <button type="submit">Login</button>
-        </form>
+            <h2>Login</h2>
+            <form id="login-form">
+                <input type="email" id="login-email" placeholder="Email" required />
+                <input type="password" id="login-password" placeholder="Password" required />
+                <button type="submit">Login</button>
+            </form>
+        </div>
     </div>
 
     <div id="app-container" class="hidden">
         <header>
-            <div class="logo">Pluto</div>
-            <div id="user-info"></div>
-            <button id="logout-button">Logout</button>
+            <a href="#" id="home-link" class="logo">Pluto</a>
+            <div class="user-nav">
+                <span id="user-info"></span>
+                <a href="#" id="profile-link">Profile</a>
+                <button id="logout-button">Logout</button>
+            </div>
         </header>
-        <main id="main-content">
-            <!-- Main content will be dynamically inserted here -->
+        <main id="landing-page" class="page-content">
+            <div id="schedule-container">
+                <h2>Your Schedule</h2>
+                <div id="schedule-display">
+                    <!-- Schedule will be rendered here -->
+                </div>
+            </div>
+            <div id="add-schedule-container" class="hidden">
+                <p>You haven't added your schedule yet.</p>
+                <button id="add-schedule-button">Add Schedule</button>
+            </div>
         </main>
+        <div id="profile-page" class="page-content hidden">
+            <h2>Profile</h2>
+            <div id="profile-view">
+                <p><strong>Name:</strong> <span id="profile-name"></span></p>
+                <p><strong>Email:</strong> <span id="profile-email"></span></p>
+                <p><strong>Grade:</strong> <span id="profile-grade">Not set</span></p>
+                <button id="edit-profile-button">Edit Profile</button>
+            </div>
+            <div id="profile-edit" class="hidden">
+                <h3>Edit Profile</h3>
+                <form id="profile-edit-form">
+                    <label for="profile-grade-edit">Grade:</label>
+                    <input type="text" id="profile-grade-edit" placeholder="Enter your grade">
+
+                    <label for="profile-pic-edit">Profile Picture URL:</label>
+                    <input type="text" id="profile-pic-edit" placeholder="Enter image URL">
+
+                    <label for="schedule-edit">Schedule (JSON format):</label>
+                    <textarea id="schedule-edit" rows="10" placeholder="Enter your schedule in JSON format"></textarea>
+
+                    <button type="submit">Save Changes</button>
+                    <button type="button" id="cancel-edit-button">Cancel</button>
+                </form>
+            </div>
+        </div>
     </div>
     <script type="module" src="script.js"></script>
 </body>

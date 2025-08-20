@@ -1,10 +1,14 @@
 body {
     font-family: sans-serif;
+    margin: 0;
+    background-color: #f4f4f4;
+}
+
+#auth-wrapper {
     display: flex;
     justify-content: center;
     align-items: center;
     height: 100vh;
-    margin: 0;
 }
 
 #auth-container {
@@ -12,6 +16,7 @@ body {
     padding: 20px;
     border: 1px solid #ccc;
     border-radius: 5px;
+    background-color: white;
 }
 
 form {
@@ -49,7 +54,8 @@ hr {
 
 #app-container {
     width: 100%;
-    height: 100%;
+    min-height: 100vh;
+    background-color: white;
 }
 
 header {
@@ -64,4 +70,28 @@ header {
 .logo {
     font-weight: bold;
     font-size: 1.5em;
+    color: #333;
+    text-decoration: none;
+}
+
+.user-nav {
+    display: flex;
+    align-items: center;
+}
+
+.user-nav > * {
+    margin-left: 15px;
+}
+
+#user-info {
+    font-weight: bold;
+}
+
+.page-content {
+    padding: 20px;
+}
+
+#schedule-container, #profile-page {
+    max-width: 800px;
+    margin: 0 auto;
 }
