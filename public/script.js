@@ -89,7 +89,12 @@ addScheduleButton.addEventListener('click', (e) => {
 
 // --- Profile Page ---
 editProfileButton.addEventListener('click', () => {
-    if (!currentUserData) return;
+    console.log('Edit profile button clicked');
+    console.log('Current user data on click:', currentUserData);
+    if (!currentUserData) {
+        console.log('No current user data, exiting.');
+        return;
+    }
 
     // Pre-fill the edit form
     document.getElementById('profile-grade-edit').value = currentUserData.grade || '';
@@ -127,8 +132,11 @@ profileEditForm.addEventListener('submit', async (e) => {
     };
 
     try {
+        console.log(`Updating profile for UID: ${auth.currentUser.uid}`);
+        console.log('Data to update:', updatedData);
         const userDocRef = doc(db, 'users', auth.currentUser.uid);
         await updateDoc(userDocRef, updatedData);
+        console.log('Profile updated successfully in Firestore.');
 
         // Manually update the view and the currentUserData variable
         currentUserData = { ...currentUserData, ...updatedData };
@@ -163,10 +171,12 @@ signupForm.addEventListener('submit', async (e) => {
         const userCredential = await createUserWithEmailAndPassword(auth, signupEmail, signupPassword);
         const user = userCredential.user;
 
+        console.log(`Creating user document for UID: ${user.uid}`);
         await setDoc(doc(db, "users", user.uid), {
             name: signupName,
             email: signupEmail,
         });
+        console.log('User document created successfully.');
 
         alert('Sign up successful!');
         signupForm.reset();
@@ -203,7 +213,7 @@ logoutButton.addEventListener('click', async () => {
 
 onAuthStateChanged(auth, async (user) => {
     if (user) {
-        authWrapper.classList.add('hidden');
+        authWrapper.style.display = 'none';
         appContainer.classList.remove('hidden');
         showPage('landing-page');
 
@@ -234,7 +244,7 @@ onAuthStateChanged(auth, async (user) => {
         }
 
     } else {
-        authWrapper.classList.remove('hidden');
+        authWrapper.style.display = 'flex';
         appContainer.classList.add('hidden');
         userInfo.textContent = '';
         currentUserData = null;
