@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
+    <div id="notification-container"></div>
     <div id="auth-wrapper">
         <div id="auth-container">
             <h2>Create Account</h2>
@@ -49,32 +50,42 @@
                 <button id="add-schedule-button">Add Schedule</button>
             </div>
         </main>
-        <div id="profile-page" class="page-content hidden">
-            <h2>Profile</h2>
-            <div id="profile-view">
-                <p><strong>Name:</strong> <span id="profile-name"></span></p>
-                <p><strong>Email:</strong> <span id="profile-email"></span></p>
-                <p><strong>Grade:</strong> <span id="profile-grade">Not set</span></p>
-                <button id="edit-profile-button">Edit Profile</button>
-            </div>
-            <div id="profile-edit" class="hidden">
-                <h3>Edit Profile</h3>
-                <form id="profile-edit-form">
-                    <label for="profile-grade-edit">Grade:</label>
-                    <input type="text" id="profile-grade-edit" placeholder="Enter your grade">
+        <!-- This div is now empty as profile page is a modal -->
+        <div id="profile-page" class="page-content hidden"></div>
+    </div>
 
-                    <label for="profile-pic-edit">Profile Picture URL:</label>
-                    <input type="text" id="profile-pic-edit" placeholder="Enter image URL">
+    <!-- Profile Modal -->
+    <div id="profile-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <button id="modal-close-button" class="modal-close-button">&times;</button>
+            <div id="profile-content">
+                 <h2>Profile</h2>
+                <div id="profile-view">
+                    <p><strong>Name:</strong> <span id="profile-name"></span></p>
+                    <p><strong>Email:</strong> <span id="profile-email"></span></p>
+                    <p><strong>Grade:</strong> <span id="profile-grade">Not set</span></p>
+                    <button id="edit-profile-button">Edit Profile</button>
+                </div>
+                <div id="profile-edit" class="hidden">
+                    <h3>Edit Profile</h3>
+                    <form id="profile-edit-form">
+                        <label for="profile-grade-edit">Grade:</label>
+                        <input type="text" id="profile-grade-edit" placeholder="Enter your grade">
 
-                    <label for="schedule-edit">Schedule (JSON format):</label>
-                    <textarea id="schedule-edit" rows="10" placeholder="Enter your schedule in JSON format"></textarea>
+                        <label for="profile-pic-edit">Profile Picture URL:</label>
+                        <input type="text" id="profile-pic-edit" placeholder="Enter image URL">
 
-                    <button type="submit">Save Changes</button>
-                    <button type="button" id="cancel-edit-button">Cancel</button>
-                </form>
+                    <label for="schedule-edit">Schedule</label>
+                    <div id="schedule-edit-placeholder" class="placeholder-div">Schedule editing coming soon!</div>
+
+                        <button type="submit">Save Changes</button>
+                        <button type="button" id="cancel-edit-button">Cancel</button>
+                    </form>
+                </div>
             </div>
         </div>
     </div>
+
     <script type="module" src="script.js"></script>
 </body>
 </html>

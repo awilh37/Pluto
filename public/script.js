@@ -17,15 +17,15 @@ const firebaseConfig = {
 
 // Initialize Firebase
 const app = initializeApp(firebaseConfig);
-const analytics = getAnalytics(app);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
 console.log("Firebase initialized successfully with Auth and Firestore!");
 
-let currentUserData = null; // To hold the current user's data
+let currentUserData = null;
 
 // --- DOM Elements ---
+const notificationContainer = document.getElementById('notification-container');
 const authWrapper = document.getElementById('auth-wrapper');
 const appContainer = document.getElementById('app-container');
 const signupForm = document.getElementById('signup-form');
@@ -35,18 +35,12 @@ const userInfo = document.getElementById('user-info');
 const scheduleContainer = document.getElementById('schedule-container');
 const scheduleDisplay = document.getElementById('schedule-display');
 const addScheduleContainer = document.getElementById('add-schedule-container');
-
-// Navigation Elements
-const homeLink = document.getElementById('home-link');
 const profileLink = document.getElementById('profile-link');
 const addScheduleButton = document.getElementById('add-schedule-button');
 
-// Page Containers
-const landingPage = document.getElementById('landing-page');
-const profilePage = document.getElementById('profile-page');
-const pages = document.querySelectorAll('.page-content');
-
-// Profile Page Elements
+// Profile Modal Elements
+const profileModal = document.getElementById('profile-modal');
+const modalCloseButton = document.getElementById('modal-close-button');
 const profileName = document.getElementById('profile-name');
 const profileEmail = document.getElementById('profile-email');
 const profileGrade = document.getElementById('profile-grade');
@@ -56,51 +50,54 @@ const profileEdit = document.getElementById('profile-edit');
 const profileEditForm = document.getElementById('profile-edit-form');
 const cancelEditButton = document.getElementById('cancel-edit-button');
 
-// --- Navigation ---
-function showPage(pageId) {
-    // By default, show the landing page when a user is logged in.
-    if (!pageId) {
-        pageId = 'landing-page';
-    }
-
-    pages.forEach(page => {
-        if (page.id === pageId) {
-            page.classList.remove('hidden');
-        } else {
-            page.classList.add('hidden');
-        }
-    });
+// --- UI Helpers ---
+let notificationTimeout;
+function showNotification(message, type = 'success') {
+    if (notificationTimeout) clearTimeout(notificationTimeout);
+    notificationContainer.textContent = message;
+    notificationContainer.className = 'show';
+    notificationContainer.classList.add(type);
+    notificationTimeout = setTimeout(() => {
+        notificationContainer.classList.remove('show');
+    }, 3000);
 }
 
-homeLink.addEventListener('click', (e) => {
-    e.preventDefault();
-    showPage('landing-page');
-});
+// --- Modal Controls ---
+function openProfileModal() {
+    profileModal.classList.add('show');
+}
+
+function closeProfileModal() {
+    profileModal.classList.remove('show');
+    // Reset to view mode when closing
+    profileEdit.classList.add('hidden');
+    profileView.classList.remove('hidden');
+}
 
 profileLink.addEventListener('click', (e) => {
     e.preventDefault();
-    showPage('profile-page');
+    openProfileModal();
 });
 
 addScheduleButton.addEventListener('click', (e) => {
     e.preventDefault();
-    showPage('profile-page');
+    openProfileModal();
 });
 
-// --- Profile Page ---
-editProfileButton.addEventListener('click', () => {
-    console.log('Edit profile button clicked');
-    console.log('Current user data on click:', currentUserData);
-    if (!currentUserData) {
-        console.log('No current user data, exiting.');
-        return;
+modalCloseButton.addEventListener('click', closeProfileModal);
+profileModal.addEventListener('click', (e) => {
+    if (e.target === profileModal) {
+        closeProfileModal();
     }
+});
 
-    // Pre-fill the edit form
+
+// --- Profile Page Logic ---
+editProfileButton.addEventListener('click', () => {
+    if (!currentUserData) return;
     document.getElementById('profile-grade-edit').value = currentUserData.grade || '';
     document.getElementById('profile-pic-edit').value = currentUserData.profilePic || '';
     document.getElementById('schedule-edit').value = currentUserData.schedule ? JSON.stringify(currentUserData.schedule, null, 2) : '';
-
     profileView.classList.add('hidden');
     profileEdit.classList.remove('hidden');
 });
@@ -114,100 +111,58 @@ profileEditForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!auth.currentUser) return;
 
-    const scheduleString = document.getElementById('schedule-edit').value;
-    let scheduleData = null;
-    if (scheduleString) {
-        try {
-            scheduleData = JSON.parse(scheduleString);
-        } catch (error) {
-            alert('Invalid JSON in schedule. Please correct it and try again.');
-            return;
-        }
-    }
-
     const updatedData = {
         grade: document.getElementById('profile-grade-edit').value,
         profilePic: document.getElementById('profile-pic-edit').value,
-        schedule: scheduleData,
+        // Schedule is no longer editable in this form
     };
 
     try {
-        console.log(`Updating profile for UID: ${auth.currentUser.uid}`);
-        console.log('Data to update:', updatedData);
         const userDocRef = doc(db, 'users', auth.currentUser.uid);
         await updateDoc(userDocRef, updatedData);
-        console.log('Profile updated successfully in Firestore.');
 
         // Manually update the view and the currentUserData variable
         currentUserData = { ...currentUserData, ...updatedData };
         profileGrade.textContent = updatedData.grade || 'Not set';
-        if (updatedData.schedule) {
-            scheduleContainer.classList.remove('hidden');
-            addScheduleContainer.classList.add('hidden');
-            scheduleDisplay.innerHTML = '<pre>' + JSON.stringify(updatedData.schedule, null, 2) + '</pre>';
-        } else {
-            scheduleContainer.classList.add('hidden');
-            addScheduleContainer.classList.remove('hidden');
-        }
 
-        alert('Profile updated successfully!');
-        profileEdit.classList.add('hidden');
-        profileView.classList.remove('hidden');
-
+        showNotification('Profile updated successfully!');
+        closeProfileModal();
     } catch (error) {
         console.error('Error updating profile:', error);
-        alert('Failed to update profile.');
+        showNotification('Failed to update profile.', 'error');
     }
 });
 
-// --- Auth ---
+// --- Auth Logic ---
 signupForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const signupName = document.getElementById('signup-name').value;
-    const signupEmail = document.getElementById('signup-email').value;
-    const signupPassword = document.getElementById('signup-password').value;
-
     try {
-        const userCredential = await createUserWithEmailAndPassword(auth, signupEmail, signupPassword);
-        const user = userCredential.user;
-
-        console.log(`Creating user document for UID: ${user.uid}`);
-        await setDoc(doc(db, "users", user.uid), {
-            name: signupName,
-            email: signupEmail,
-        });
-        console.log('User document created successfully.');
-
-        alert('Sign up successful!');
+        const userCredential = await createUserWithEmailAndPassword(auth, signupForm.email.value, signupForm.password.value);
+        await setDoc(doc(db, "users", userCredential.user.uid), { name: signupForm.name.value, email: signupForm.email.value });
+        showNotification('Sign up successful!');
         signupForm.reset();
     } catch (error) {
-        console.error("Error signing up:", error);
-        alert(error.message);
+        showNotification(error.message, 'error');
     }
 });
 
 loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
-    const loginEmail = document.getElementById('login-email').value;
-    const loginPassword = document.getElementById('login-password').value;
-
     try {
-        await signInWithEmailAndPassword(auth, loginEmail, loginPassword);
-        alert('Login successful!');
+        await signInWithEmailAndPassword(auth, loginForm.email.value, loginForm.password.value);
+        showNotification('Login successful!');
         loginForm.reset();
     } catch (error) {
-        console.error("Error logging in:", error);
-        alert(error.message);
+        showNotification(error.message, 'error');
     }
 });
 
 logoutButton.addEventListener('click', async () => {
     try {
         await signOut(auth);
-        alert('Logout successful!');
+        showNotification('Logout successful!');
     } catch (error) {
-        console.error("Error signing out:", error);
-        alert(error.message);
+        showNotification(error.message, 'error');
     }
 });
 
@@ -215,16 +170,12 @@ onAuthStateChanged(auth, async (user) => {
     if (user) {
         authWrapper.style.display = 'none';
         appContainer.classList.remove('hidden');
-        showPage('landing-page');
-
         const userDocRef = doc(db, 'users', user.uid);
         const userDoc = await getDoc(userDocRef);
-
         if (userDoc.exists()) {
             currentUserData = userDoc.data();
             const userData = currentUserData;
             userInfo.textContent = `Welcome, ${userData.name}`;
-
             if (userData.schedule) {
                 scheduleContainer.classList.remove('hidden');
                 addScheduleContainer.classList.add('hidden');
@@ -233,7 +184,6 @@ onAuthStateChanged(auth, async (user) => {
                 scheduleContainer.classList.add('hidden');
                 addScheduleContainer.classList.remove('hidden');
             }
-
             profileName.textContent = userData.name;
             profileEmail.textContent = userData.email;
             profileGrade.textContent = userData.grade || 'Not set';
@@ -242,7 +192,6 @@ onAuthStateChanged(auth, async (user) => {
             scheduleContainer.classList.add('hidden');
             addScheduleContainer.classList.remove('hidden');
         }
-
     } else {
         authWrapper.style.display = 'flex';
         appContainer.classList.add('hidden');
