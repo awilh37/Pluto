@@ -35,6 +35,7 @@ const userInfo = document.getElementById('user-info');
 const scheduleContainer = document.getElementById('schedule-container');
 const scheduleDisplay = document.getElementById('schedule-display');
 const addScheduleContainer = document.getElementById('add-schedule-container');
+const homeLink = document.getElementById('home-link');
 const profileLink = document.getElementById('profile-link');
 const addScheduleButton = document.getElementById('add-schedule-button');
 
@@ -64,28 +65,39 @@ function showNotification(message, type = 'success') {
 
 // --- Modal Controls ---
 function openProfileModal() {
+    console.log("Opening profile modal...");
     profileModal.classList.add('show');
 }
 
 function closeProfileModal() {
+    console.log("Closing profile modal...");
     profileModal.classList.remove('show');
-    // Reset to view mode when closing
+    // Reset to view mode when closing, ensuring it's not stuck in edit mode next time
     profileEdit.classList.add('hidden');
     profileView.classList.remove('hidden');
 }
 
+// --- Navigation Listeners ---
+homeLink.addEventListener('click', (e) => {
+    e.preventDefault();
+    console.log('Home link clicked. No action needed.');
+});
+
 profileLink.addEventListener('click', (e) => {
     e.preventDefault();
+    console.log('Profile link clicked.');
     openProfileModal();
 });
 
 addScheduleButton.addEventListener('click', (e) => {
     e.preventDefault();
+    console.log('Add schedule button clicked.');
     openProfileModal();
 });
 
 modalCloseButton.addEventListener('click', closeProfileModal);
 profileModal.addEventListener('click', (e) => {
+    // Closes the modal if user clicks on the backdrop
     if (e.target === profileModal) {
         closeProfileModal();
     }
