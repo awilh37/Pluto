@@ -17,3 +17,4 @@ This is an app that will allow people to share their schedules with friends and 
   - When editing your profile, you should be able to edit your profile picture and schedule.
 
 There will be more to come, but please begin with this list. Do NOT check anything off until I say you can. 
+ 
