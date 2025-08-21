@@ -136,23 +136,33 @@ profileEditForm.addEventListener('submit', async (e) => {
 // --- Auth Logic ---
 signupForm.addEventListener('submit', async (e) => {
     e.preventDefault();
+    const signupName = document.getElementById('signup-name').value;
+    const signupEmail = document.getElementById('signup-email').value;
+    const signupPassword = document.getElementById('signup-password').value;
+
     try {
-        const userCredential = await createUserWithEmailAndPassword(auth, signupForm.email.value, signupForm.password.value);
-        await setDoc(doc(db, "users", userCredential.user.uid), { name: signupForm.name.value, email: signupForm.email.value });
+        const userCredential = await createUserWithEmailAndPassword(auth, signupEmail, signupPassword);
+        const user = userCredential.user;
+        await setDoc(doc(db, "users", user.uid), { name: signupName, email: signupEmail });
         showNotification('Sign up successful!');
         signupForm.reset();
     } catch (error) {
+        console.error("Error signing up:", error);
         showNotification(error.message, 'error');
     }
 });
 
 loginForm.addEventListener('submit', async (e) => {
     e.preventDefault();
+    const loginEmail = document.getElementById('login-email').value;
+    const loginPassword = document.getElementById('login-password').value;
+
     try {
-        await signInWithEmailAndPassword(auth, loginForm.email.value, loginForm.password.value);
+        await signInWithEmailAndPassword(auth, loginEmail, loginPassword);
         showNotification('Login successful!');
         loginForm.reset();
     } catch (error) {
+        console.error("Error logging in:", error);
         showNotification(error.message, 'error');
     }
 });
