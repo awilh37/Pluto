@@ -10,22 +10,25 @@
     <div id="notification-container"></div>
     <div id="auth-wrapper">
         <div id="auth-container">
-            <h2>Create Account</h2>
-            <form id="signup-form">
-                <input type="text" id="signup-name" placeholder="Name" required />
-                <input type="email" id="signup-email" placeholder="Email" required />
-                <input type="password" id="signup-password" placeholder="Password" required />
-                <button type="submit">Sign Up</button>
-            </form>
-
-            <hr>
-
-            <h2>Login</h2>
-            <form id="login-form">
-                <input type="email" id="login-email" placeholder="Email" required />
-                <input type="password" id="login-password" placeholder="Password" required />
-                <button type="submit">Login</button>
-            </form>
+            <div id="login-form-container">
+                <h2>Login</h2>
+                <form id="login-form">
+                    <input type="email" id="login-email" placeholder="Email" required />
+                    <input type="password" id="login-password" placeholder="Password" required />
+                    <button type="submit">Login</button>
+                </form>
+                <p class="auth-toggle-link">Don't have an account? <a href="#" id="show-signup">Sign Up</a></p>
+            </div>
+            <div id="signup-form-container">
+                <h2>Create Account</h2>
+                <form id="signup-form">
+                    <input type="text" id="signup-name" placeholder="Name" required />
+                    <input type="email" id="signup-email" placeholder="Email" required />
+                    <input type="password" id="signup-password" placeholder="Password" required />
+                    <button type="submit">Sign Up</button>
+                </form>
+                <p class="auth-toggle-link">Already have an account? <a href="#" id="show-login">Log In</a></p>
+            </div>
         </div>
     </div>
 
@@ -34,7 +37,7 @@
             <a href="#" id="home-link" class="logo">Pluto</a>
             <div class="user-nav">
                 <span id="user-info"></span>
-                <a href="#" id="profile-link">Profile</a>
+                <img src="default-pfp.png" alt="Profile" id="header-pfp" class="profile-pic-header" />
                 <button id="logout-button">Logout</button>
             </div>
         </header>
@@ -59,9 +62,12 @@
         <div class="modal-content">
             <button id="modal-close-button" class="modal-close-button">&times;</button>
             <div id="profile-content">
-                 <h2>Profile</h2>
+                <div id="profile-header">
+                    <img src="default-pfp.png" alt="Profile Picture" id="modal-pfp" class="profile-pic-modal">
+                    <h2 id="profile-name-header"></h2>
+                </div>
                 <div id="profile-view">
-                    <p><strong>Name:</strong> <span id="profile-name"></span></p>
+                    <p><strong>Full Name:</strong> <span id="profile-name"></span></p>
                     <p><strong>Email:</strong> <span id="profile-email"></span></p>
                     <p><strong>Grade:</strong> <span id="profile-grade">Not set</span></p>
                     <button id="edit-profile-button">Edit Profile</button>
