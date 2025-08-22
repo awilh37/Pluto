@@ -366,3 +366,82 @@ hr {
     margin: 0;
     font-size: 1.8em;
 }
+
+#my-schedule-button {
+    background-color: var(--primary-color);
+    margin-right: 10px;
+}
+
+.modal-content.large {
+    max-width: 800px;
+}
+
+#schedule-list {
+    margin-top: 20px;
+    margin-bottom: 20px;
+}
+
+.schedule-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    margin-bottom: 10px;
+}
+
+.schedule-item-info {
+    font-size: 1.1em;
+}
+
+.schedule-item-actions button {
+    margin-left: 10px;
+    background-color: transparent;
+    border: none;
+    font-size: 1.2em;
+    padding: 5px;
+    color: var(--text-light);
+}
+
+.schedule-item-actions button:hover {
+    color: var(--primary-color);
+}
+
+.add-class-button {
+    width: 100%;
+    background: var(--success-color);
+    font-size: 1.1em;
+}
+
+/* --- Add/Edit Form Styles --- */
+.form-group {
+    margin-bottom: 15px;
+    text-align: left;
+}
+
+.radio-group {
+    display: flex;
+    gap: 15px;
+    align-items: center;
+}
+
+.radio-group label {
+    font-weight: normal;
+    margin-bottom: 0;
+}
+
+#add-edit-form select {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 5px;
+    background-color: white;
+}
+
+#add-new-class-btn, #add-new-teacher-btn {
+    display: block;
+    width: 100%;
+    margin-top: 10px;
+    background-color: var(--secondary-color);
+}
