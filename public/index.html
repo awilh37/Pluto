@@ -37,6 +37,7 @@
             <a href="#" id="home-link" class="logo">Pluto</a>
             <div class="user-nav">
                 <span id="user-info"></span>
+                <button id="my-schedule-button">My Schedule</button>
                 <img src="default-pfp.png" alt="Profile" id="header-pfp" class="profile-pic-header" />
                 <button id="logout-button">Logout</button>
             </div>
@@ -93,5 +94,70 @@
     </div>
 
     <script type="module" src="script.js"></script>
+
+    <!-- My Schedule Modal -->
+    <div id="schedule-modal" class="modal-overlay hidden">
+        <div class="modal-content large">
+            <button id="schedule-modal-close-button" class="modal-close-button">&times;</button>
+            <h2>My Schedule</h2>
+            <div id="schedule-list">
+                <!-- User's classes will be rendered here -->
+                <p>You haven't added any classes to your schedule yet.</p>
+            </div>
+            <button id="add-class-button" class="add-class-button">+ Add Class</button>
+        </div>
+    </div>
+
+    <!-- Add/Edit Class Modal -->
+    <div id="add-edit-modal" class="modal-overlay hidden">
+        <div class="modal-content">
+            <button id="add-edit-modal-close-button" class="modal-close-button">&times;</button>
+            <h2 id="add-edit-modal-title">Add Class</h2>
+            <form id="add-edit-form">
+                <div class="form-group">
+                    <label for="class-name-input">Class Name</label>
+                    <input type="text" id="class-name-input" list="class-suggestions" placeholder="Search for a class...">
+                    <datalist id="class-suggestions"></datalist>
+                    <button type="button" id="add-new-class-btn" class="hidden">+ Add New Class</button>
+                </div>
+                <div class="form-group">
+                    <label for="teacher-name-input">Teacher</label>
+                    <input type="text" id="teacher-name-input" list="teacher-suggestions" placeholder="Search for a teacher...">
+                    <datalist id="teacher-suggestions"></datalist>
+                    <button type="button" id="add-new-teacher-btn" class="hidden">+ Add New Teacher</button>
+                </div>
+                <div class="form-group">
+                    <label for="block-select">Block</label>
+                    <select id="block-select">
+                        <option>A</option>
+                        <option>B</option>
+                        <option>C</option>
+                        <option>D</option>
+                        <option>E</option>
+                        <option>F</option>
+                        <option>G</option>
+                        <option>HR</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label>Color</label>
+                    <div class="radio-group">
+                        <input type="radio" id="color-green" name="color" value="Green" checked> <label for="color-green">Green</label>
+                        <input type="radio" id="color-white" name="color" value="White"> <label for="color-white">White</label>
+                        <input type="radio" id="color-both" name="color" value="Both"> <label for="color-both">Both</label>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label>Semester</label>
+                    <div class="radio-group">
+                        <input type="radio" id="semester-s1" name="semester" value="S1" checked> <label for="semester-s1">S1</label>
+                        <input type="radio" id="semester-s2" name="semester" value="S2"> <label for="semester-s2">S2</label>
+                        <input type="radio" id="semester-full" name="semester" value="Full Year"> <label for="semester-full">Full Year</label>
+                    </div>
+                </div>
+                <button type="submit" id="save-class-btn">Save Class</button>
+            </form>
+        </div>
+    </div>
 </body>
 </html>
