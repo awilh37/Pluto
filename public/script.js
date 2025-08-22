@@ -71,8 +71,31 @@ function showNotification(message, type = 'success') {
 // --- Auth Form Toggle ---
 const showSignup = document.getElementById('show-signup');
 const showLogin = document.getElementById('show-login');
-showSignup.addEventListener('click', (e) => { e.preventDefault(); authContainer.classList.add('show-signup'); });
-showLogin.addEventListener('click', (e) => { e.preventDefault(); authContainer.classList.remove('show-signup'); });
+const loginFormContainer = document.getElementById('login-form-container');
+const signupFormContainer = document.getElementById('signup-form-container');
+
+function setAuthContainerHeight() {
+    if (authContainer.classList.contains('show-signup')) {
+        authContainer.style.height = signupFormContainer.scrollHeight + 'px';
+    } else {
+        authContainer.style.height = loginFormContainer.scrollHeight + 'px';
+    }
+}
+
+showSignup.addEventListener('click', (e) => {
+    e.preventDefault();
+    authContainer.classList.add('show-signup');
+    setAuthContainerHeight();
+});
+
+showLogin.addEventListener('click', (e) => {
+    e.preventDefault();
+    authContainer.classList.remove('show-signup');
+    setAuthContainerHeight();
+});
+
+// Set initial height when the script loads
+window.addEventListener('DOMContentLoaded', setAuthContainerHeight);
 
 // --- Modal Controls ---
 function openProfileModal() {
