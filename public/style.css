@@ -36,11 +36,48 @@ body {
     border-radius: 8px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.1);
     text-align: center;
+    overflow: hidden; /* Important for the animation */
+    position: relative;
 }
 
 #auth-container h2 {
     margin-bottom: 25px;
     color: var(--primary-color);
+}
+
+#login-form-container, #signup-form-container {
+    transition: all 0.5s ease-in-out;
+}
+
+#signup-form-container {
+    position: absolute;
+    top: 40px; /* Match padding */
+    left: 0;
+    width: 100%;
+    transform: translateX(100%);
+}
+
+#auth-container.show-signup #login-form-container {
+    transform: translateX(-100%);
+}
+
+#auth-container.show-signup #signup-form-container {
+    transform: translateX(0);
+}
+
+.auth-toggle-link {
+    margin-top: 20px;
+    font-size: 0.9em;
+}
+
+.auth-toggle-link a {
+    color: var(--secondary-color);
+    font-weight: 500;
+    text-decoration: none;
+}
+
+.auth-toggle-link a:hover {
+    text-decoration: underline;
 }
 
 /* --- General App Container --- */
@@ -290,4 +327,41 @@ hr {
     color: #666;
     border-radius: 5px;
     margin-bottom: 15px;
+}
+
+/* --- Profile Picture Styles --- */
+.profile-pic-header {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    object-fit: cover;
+    cursor: pointer;
+    border: 2px solid var(--border-color);
+    transition: border-color 0.3s ease;
+}
+
+.profile-pic-header:hover {
+    border-color: var(--primary-color);
+}
+
+#profile-header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    margin-bottom: 20px;
+}
+
+.profile-pic-modal {
+    width: 100px;
+    height: 100px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 3px solid var(--container-bg);
+    box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+    margin-bottom: 10px;
+}
+
+#profile-name-header {
+    margin: 0;
+    font-size: 1.8em;
 }
