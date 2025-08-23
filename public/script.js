@@ -1,7 +1,7 @@
 // Import the functions you need from the SDKs you need
 import { initializeApp } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-app.js";
 import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-auth.js";
-import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, getDocs, addDoc, arrayUnion, arrayRemove } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
+import { getFirestore, doc, setDoc, getDoc, updateDoc, collection, getDocs, addDoc, arrayUnion, arrayRemove, onSnapshot } from "https://www.gstatic.com/firebasejs/12.1.0/firebase-firestore.js";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -22,8 +22,9 @@ const db = getFirestore(app);
 console.log("Firebase initialized successfully with Auth and Firestore!");
 
 let currentUserData = null;
+let unsubscribeUser = null; // To hold the detachment function for the user's data listener
 const defaultPfpUrl = 'https://i.imgur.com/3gZpW5A.png';
-let editingClassId = null; // To track if we are editing an existing class
+let editingClassId = null;
 
 // --- DOM Elements ---
 const notificationContainer = document.getElementById('notification-container');
@@ -39,12 +40,8 @@ const scheduleDisplay = document.getElementById('schedule-display');
 const addScheduleContainer = document.getElementById('add-schedule-container');
 const homeLink = document.getElementById('home-link');
 const myScheduleButton = document.getElementById('my-schedule-button');
-
-// Profile Picture Elements
 const headerPfp = document.getElementById('header-pfp');
 const modalPfp = document.getElementById('modal-pfp');
-
-// Profile Modal Elements
 const profileModal = document.getElementById('profile-modal');
 const modalCloseButton = document.getElementById('modal-close-button');
 const profileNameHeader = document.getElementById('profile-name-header');
@@ -56,14 +53,10 @@ const profileView = document.getElementById('profile-view');
 const profileEdit = document.getElementById('profile-edit');
 const profileEditForm = document.getElementById('profile-edit-form');
 const cancelEditButton = document.getElementById('cancel-edit-button');
-
-// Schedule Modal Elements
 const scheduleModal = document.getElementById('schedule-modal');
 const scheduleModalCloseButton = document.getElementById('schedule-modal-close-button');
 const scheduleList = document.getElementById('schedule-list');
 const addClassButton = document.getElementById('add-class-button');
-
-// Add/Edit Class Modal Elements
 const addEditModal = document.getElementById('add-edit-modal');
 const addEditModalCloseButton = document.getElementById('add-edit-modal-close-button');
 const addEditModalTitle = document.getElementById('add-edit-modal-title');
@@ -74,7 +67,6 @@ const classSuggestions = document.getElementById('class-suggestions');
 const teacherSuggestions = document.getElementById('teacher-suggestions');
 const addNewClassBtn = document.getElementById('add-new-class-btn');
 const addNewTeacherBtn = document.getElementById('add-new-teacher-btn');
-
 
 // --- UI Helpers ---
 let notificationTimeout;
@@ -115,7 +107,6 @@ function renderSchedule(scheduleData) {
         scheduleList.innerHTML = '<p>You haven\'t added any classes to your schedule yet.</p>';
     }
 }
-
 
 // --- Auth Form Toggle ---
 const showSignup = document.getElementById('show-signup');
@@ -165,13 +156,17 @@ addEditModal.addEventListener('click', (e) => { if (e.target === addEditModal) c
 
 // --- Schedule Logic ---
 async function populateDatalist(collectionName, datalistElement) {
-    const querySnapshot = await getDocs(collection(db, collectionName));
-    datalistElement.innerHTML = '';
-    querySnapshot.forEach((doc) => {
-        const option = document.createElement('option');
-        option.value = doc.data().name;
-        datalistElement.appendChild(option);
-    });
+    try {
+        const querySnapshot = await getDocs(collection(db, collectionName));
+        datalistElement.innerHTML = '';
+        querySnapshot.forEach((doc) => {
+            const option = document.createElement('option');
+            option.value = doc.data().name;
+            datalistElement.appendChild(option);
+        });
+    } catch (error) {
+        console.error(`Error populating datalist for ${collectionName}:`, error);
+    }
 }
 function setupSearchAndAdd(inputElement, buttonElement, collectionName, datalistElement) {
     inputElement.addEventListener('input', () => {
@@ -202,31 +197,24 @@ function initializeScheduleForm() {
 addEditForm.addEventListener('submit', async (e) => {
     e.preventDefault();
     if (!auth.currentUser) return;
-
     const newClassData = {
-        id: editingClassId || doc(collection(db, 'users')).id, // Generate new ID if not editing
+        id: editingClassId || doc(collection(db, 'users')).id,
         name: classNameInput.value,
         teacher: teacherNameInput.value,
         block: document.getElementById('block-select').value,
         color: document.querySelector('input[name="color"]:checked').value,
         semester: document.querySelector('input[name="semester"]:checked').value,
     };
-
     const userDocRef = doc(db, 'users', auth.currentUser.uid);
-
     try {
         if (editingClassId) {
-            // Update existing class
             const updatedSchedule = currentUserData.schedule.map(c => c.id === editingClassId ? newClassData : c);
             await updateDoc(userDocRef, { schedule: updatedSchedule });
         } else {
-            // Add new class
             await updateDoc(userDocRef, { schedule: arrayUnion(newClassData) });
         }
-
         showNotification(`Class ${editingClassId ? 'updated' : 'added'} successfully!`);
         closeAddEditModal();
-        // The onAuthStateChanged listener will re-render the schedule from the latest data
     } catch (error) {
         console.error("Error saving class:", error);
         showNotification("Failed to save class.", 'error');
@@ -256,22 +244,87 @@ scheduleList.addEventListener('click', async (e) => {
     }
 });
 
-
 // --- Profile Page Logic ---
-// ... (existing profile page logic)
-
+editProfileButton.addEventListener('click', () => {
+    if (!currentUserData) return;
+    document.getElementById('profile-grade-edit').value = currentUserData.grade || '';
+    document.getElementById('profile-pic-edit').value = currentUserData.profilePic || '';
+    profileView.classList.add('hidden');
+    profileEdit.classList.remove('hidden');
+});
+cancelEditButton.addEventListener('click', () => {
+    profileEdit.classList.add('hidden');
+    profileView.classList.remove('hidden');
+});
+profileEditForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (!auth.currentUser) return;
+    const updatedData = {
+        grade: document.getElementById('profile-grade-edit').value,
+        profilePic: document.getElementById('profile-pic-edit').value,
+    };
+    try {
+        const userDocRef = doc(db, 'users', auth.currentUser.uid);
+        await updateDoc(userDocRef, updatedData);
+        currentUserData = { ...currentUserData, ...updatedData };
+        profileGrade.textContent = updatedData.grade || 'Not set';
+        headerPfp.src = updatedData.profilePic || defaultPfpUrl;
+        modalPfp.src = updatedData.profilePic || defaultPfpUrl;
+        showNotification('Profile updated successfully!');
+        closeProfileModal();
+    } catch (error) {
+        showNotification('Failed to update profile.', 'error');
+    }
+});
 
 // --- Auth Logic ---
-// ... (existing auth logic)
-
+signupForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const signupName = document.getElementById('signup-name').value;
+    const signupEmail = document.getElementById('signup-email').value;
+    const signupPassword = document.getElementById('signup-password').value;
+    try {
+        const userCredential = await createUserWithEmailAndPassword(auth, signupEmail, signupPassword);
+        await setDoc(doc(db, "users", userCredential.user.uid), { name: signupName, email: signupEmail });
+        showNotification('Sign up successful!');
+        signupForm.reset();
+    } catch (error) {
+        showNotification(error.message, 'error');
+    }
+});
+loginForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    const loginEmail = document.getElementById('login-email').value;
+    const loginPassword = document.getElementById('login-password').value;
+    try {
+        await signInWithEmailAndPassword(auth, loginEmail, loginPassword);
+        showNotification('Login successful!');
+        loginForm.reset();
+    } catch (error) {
+        showNotification(error.message, 'error');
+    }
+});
+logoutButton.addEventListener('click', async () => {
+    try {
+        await signOut(auth);
+        showNotification('Logout successful!');
+    } catch (error) {
+        showNotification(error.message, 'error');
+    }
+});
 
 onAuthStateChanged(auth, async (user) => {
+    if (unsubscribeUser) {
+        unsubscribeUser(); // Detach any previous listener
+        unsubscribeUser = null;
+    }
+
     if (user) {
         authWrapper.style.display = 'none';
         appContainer.classList.remove('hidden');
-
         const userDocRef = doc(db, 'users', user.uid);
-        const unsub = onSnapshot(userDocRef, (doc) => {
+
+        unsubscribeUser = onSnapshot(userDocRef, (doc) => {
             if (doc.exists()) {
                 currentUserData = doc.data();
                 const userData = currentUserData;
@@ -284,7 +337,6 @@ onAuthStateChanged(auth, async (user) => {
                 profileGrade.textContent = userData.grade || 'Not set';
                 renderSchedule(userData.schedule);
             } else {
-                // Handle case where user exists in Auth but not Firestore
                 userInfo.textContent = `Welcome, ${user.email}`;
                 headerPfp.src = defaultPfpUrl;
                 modalPfp.src = defaultPfpUrl;
